@@ -8,5 +8,5 @@ N okrętów co pewien czas kończy walkę i wraca do bazy, gdzie ubiega się o j
 Dodatkowo, dowództwo okrętów ubiega się o mechaników. Liczba mechaników wymaganych
 do naprawy jest zależna od zniszczeń. Łącznie jest M mechaników, i są oni nierozróżnialni.
 
-## Dominik Pawłowski, L16, 145289
-## Bartłomiej Kowalewski, L15, 145204
+* Dominik Pawłowski, L16, 145289
+* Bartłomiej Kowalewski, L15, 145204
