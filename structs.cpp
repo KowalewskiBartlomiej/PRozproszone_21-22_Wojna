@@ -1,7 +1,8 @@
-#ifndef STRUCTS_CPP
-#define STRUCTS_CPP
-
 #include "structs.h"
+
+Ship::Ship(){}
+
+Ship::~Ship(){}
 
 Ship::Ship(int rank, int size) {
     //srand(rank + time(NULL));
@@ -19,4 +20,6 @@ void Ship::updateTime(int received_time) {
     this->Lamport_Time = max(Lamport_Time, received_time) + 1;
 }
 
-#endif
+void Ship::processStatus(){
+    cout << this->rank << endl;
+}

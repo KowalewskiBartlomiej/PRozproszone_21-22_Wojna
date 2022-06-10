@@ -20,8 +20,8 @@ int main(int argc, char** argv){
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     
-    std::thread mess_handle(handler::recv_message);
     Ship ship(rank, size);
-    
-
+    ship.processStatus();
+    //std::thread mess_handle(handler::recv_message, &ship);
+    MPI_Finalize();
 }
