@@ -8,6 +8,8 @@
 #include <mutex>
 #include <thread>
 #include <iostream>
+#include <math.h>
+#include <unistd.h>
 
 using namespace std;
 
@@ -18,6 +20,7 @@ using namespace std;
 #define MECHANICS 10
 #define MAXTIME 60
 #define HP 7
+#define WAIT_TIME 1
 //////////////////////
 
 enum Status {
@@ -54,11 +57,12 @@ class Ship {
         int rank;
         int size;
         int durability;
-        vector<array<int, 2>> mechQueue; //kolejka dostępu do mechaników
+        vector<array<int, 3>> mechQueue; //kolejka dostępu do mechaników
         vector<int> pending;             //tablica zawierająca okręty, którym należy odpowiedzieć po zwolnieniu doku
         //mutex mutex;
 
         void updateTime(int received_time);
+        int busyMech();
         void processStatus();
 };
 
