@@ -1,5 +1,9 @@
 #include "structs.h"
 
+Ship::Ship(){}
+
+Ship::~Ship(){}
+
 Ship::Ship(int rank, int size) {
     //srand(rank + time(NULL));
     this->durability = HP; //rand() % 
@@ -14,4 +18,8 @@ Ship::Ship(int rank, int size) {
 
 void Ship::updateTime(int received_time) {
     this->lamportTime = max(lamportTime, received_time) + 1;
+}
+
+void Ship::processStatus(){
+    cout << this->rank << endl;
 }

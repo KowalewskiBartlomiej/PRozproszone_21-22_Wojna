@@ -7,6 +7,7 @@
 #include <ctime>
 #include <mutex>
 #include <thread>
+#include <iostream>
 
 using namespace std;
 
@@ -41,6 +42,10 @@ typedef struct {
 
 class Ship {
     public:
+        Ship();
+        ~Ship();
+        Ship(int rank, int size);
+
         Status status;                   //zmienna określająca stan statku
         int damage;                      //zmienna określająca liczbę uszkodzeń (liczbę potrzebnych do naprawy mechaników)
         bool kAsk;                       //zmienna określająca, czy statek ubiega się o dok
@@ -51,9 +56,8 @@ class Ship {
         int durability;
         vector<array<int, 2>> mechQueue; //kolejka dostępu do mechaników
         vector<int> pending;             //tablica zawierająca okręty, którym należy odpowiedzieć po zwolnieniu doku
-        mutex mutex;
+        //mutex mutex;
 
-        Ship(int rank, int size);
         void updateTime(int received_time);
         void processStatus();
 };
