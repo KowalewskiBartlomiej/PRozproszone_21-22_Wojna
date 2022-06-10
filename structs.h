@@ -35,6 +35,11 @@ enum Msg {
     REL_MECH                             //Zwolnienie mechaników
 };
 
+typedef struct {
+    int lamportTime;                     //czas lamporta           
+    int mech_number;                     //liczba potrzebnych mechaników
+} message;
+
 class Ship {
     public:
         Ship();
