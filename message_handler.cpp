@@ -38,16 +38,3 @@ void handler::recv_message(Ship* ship){
     }
 
 }
-
-void handler::send_message(Msg tag, int rec, Ship* ship){
-
-    message mess;
-
-    ship->timeMutex.lock();
-    ship->updateTime(0);
-    mess.lamportTime = ship->lamportTime;
-    mess.mechNumber = ship->damage;
-    ship->timeMutex.unlock();
-    MPI_Send(&mess, 1, ship->MSG_WAR, rec, tag, MPI_COMM_WORLD);
-
-}

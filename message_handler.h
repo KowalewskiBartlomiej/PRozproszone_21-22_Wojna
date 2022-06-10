@@ -1,13 +1,14 @@
-#pragma once
+#ifndef COMM_HANDLER
+#define COMM_HANDLER
 
 #include <mpi.h>
 
-#include "structs.h"
+#include "ship.h"
 
 namespace handler{
 
     void recv_message(Ship* ship);
 
-    void send_message(Msg tag, int rec, Ship* ship);
-
 }
+
+#endif
