@@ -4,6 +4,8 @@
 #include "structs.h"
 
 Ship::Ship(int rank, int size) {
+    //srand(rank + time(NULL));
+    this->durability = HP; //rand() % 
     this->status = Status::AT_WAR;
     this->rank = rank;
     this->size = size;
