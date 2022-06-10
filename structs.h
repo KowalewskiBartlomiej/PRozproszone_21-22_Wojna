@@ -3,6 +3,10 @@
 
 #include <vector>
 #include <array>
+#include <cstdlib>
+#include <ctime>
+#include <mutex>
+#include <thread>
 
 using namespace std;
 
@@ -38,11 +42,14 @@ class Ship {
         int Lamport_Time;                //zmienna określająca czas przybycia procesu (zegar Lamporta)
         int rank;
         int size;
+        int durability;
         vector<array<int, 2>> mechQueue; //kolejka dostępu do mechaników
         vector<int> pending;             //tablica zawierająca okręty, którym należy odpowiedzieć po zwolnieniu doku
+        mutex mutex;
 
         Ship(int rank, int size);
         void updateTime(int received_time);
+        void processStatus();
 };
 
 #endif
