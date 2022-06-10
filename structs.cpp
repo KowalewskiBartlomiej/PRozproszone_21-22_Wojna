@@ -15,6 +15,7 @@ Ship::Ship(int rank, int size) {
     this->kAsk = false;
     this->damage = 0;
     this->pending.resize(size, 0);
+    this->MSG_WAR = this->createType();
 }
 
 void Ship::updateTime(int received_time) {
@@ -128,4 +129,59 @@ void Ship::processStatus(){
 
             break;
     }
+void Ship::processAck(int tag, message mess, int rank){
+    if(this->status == Status::SEARCHING_MECHANICS && tag == Msg::ACK_DOCK){
+        return;
+    }
+    ++(this->accepted);
+    if(tag == Msg::ACK_MECH){
+        array<int, 3> toAdd = {rank, mess.lamportTime, mess.mechNumber};
+        for(unsigned i=0; i<this->mechQueue.size(); ++i){
+            if(this->mechQueue[i].at(1) > mess.lamportTime){
+                this->mechQueue.insert(this->mechQueue.begin()+i, toAdd);
+            }
+            if(this->mechQueue[i].at(1) == mess.lamportTime){
+                if(this->mechQueue[i].at(0) < rank){
+                    this->mechQueue.insert(this->mechQueue.begin()+i, toAdd);
+                }
+                else{
+                    if(i+1 == this->mechQueue.size()){
+                        this->mechQueue.emplace_back(toAdd);
+                    }
+                    else{
+                        this->mechQueue.insert(this->mechQueue.begin()+i+1, toAdd);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void Ship::updateQueue(int freed){
+    for(unsigned i=0; i<this->mechQueue.size(); ++i){
+        if(this->mechQueue[i].at(0) == freed){
+            this->mechQueue.erase(this->mechQueue.begin() + i);
+            break;
+        }
+    }
+    if (this->mechQueue[0].at(0) == this->rank){
+
+    }
+}
+
+MPI_Datatype Ship::createType() {
+    
+    MPI_Datatype MPI_MESSAGE_WAR;
+    const int items = 2;
+    int bLength[items] = {1, 1};
+    MPI_Datatype types[items] = {MPI_INT, MPI_INT};
+
+    MPI_Aint offsets[items];
+    offsets[0] = offsetof(message, lamportTime);
+    offsets[1] = offsetof(message, mechNumber);
+
+    MPI_Type_create_struct(items, bLength, offsets, types, &MPI_MESSAGE_WAR);
+    MPI_Type_commit(&MPI_MESSAGE_WAR);
+
+    return MPI_MESSAGE_WAR;
 }

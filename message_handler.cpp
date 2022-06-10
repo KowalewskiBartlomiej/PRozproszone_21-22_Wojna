@@ -3,29 +3,35 @@
 void handler::recv_message(Ship* ship){
     
     MPI_Status status;
-    int tmp;
+    message mess;
 
     while(true){
 
-        MPI_Recv(&tmp, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        MPI_Recv(&mess, 1, ship->MSG_WAR, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        ship->timeMutex.lock();
+        ship->updateTime(mess.lamportTime);
+        ship->timeMutex.unlock();
 
         switch(status.MPI_TAG){
             case REQ_DOCK:
                 if (!ship->kAsk){
-                    send_message(Msg::ACK_DOCK, status.MPI_SOURCE);
+                    send_message(Msg::ACK_DOCK, status.MPI_SOURCE, ship);
                 }
                 else{
                     ship->pending.emplace_back(status.MPI_SOURCE);
                 }
                 break;
             case ACK_DOCK:
+                ship->processAck(status.MPI_TAG, mess, status.MPI_SOURCE);
                 break;
             case REQ_MECH:
-                send_message(Msg::ACK_MECH, status.MPI_SOURCE);
+                send_message(Msg::ACK_MECH, status.MPI_SOURCE, ship);
                 break;
             case ACK_MECH:
+                ship->processAck(status.MPI_TAG, mess, status.MPI_SOURCE);
                 break;
             case REL_MECH:
+                ship->updateQueue(status.MPI_SOURCE);
                 break;
         }
 
@@ -33,11 +39,15 @@ void handler::recv_message(Ship* ship){
 
 }
 
-void handler::send_message(Msg tag, int rec){
+void handler::send_message(Msg tag, int rec, Ship* ship){
 
-    int tmp;
+    message mess;
 
-
-    MPI_Send(&tmp, 1, MPI_INT, rec, tag, MPI_COMM_WORLD);
+    ship->timeMutex.lock();
+    ship->updateTime(0);
+    mess.lamportTime = ship->lamportTime;
+    mess.mechNumber = ship->damage;
+    ship->timeMutex.unlock();
+    MPI_Send(&mess, 1, ship->MSG_WAR, rec, tag, MPI_COMM_WORLD);
 
 }

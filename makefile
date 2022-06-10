@@ -1,5 +1,8 @@
 CC = mpic++
 CFLAGS = -Wall
 
-war: main.cpp message_handler.cpp structs.cpp
-	$(CC) $(CFLAGS) -o main.cpp message_handler.cpp structs.cpp
+war:
+	$(CC) $(CFLAGS) -o war main.cpp message_handler.cpp structs.cpp
+
+clean: 
+	rm war 

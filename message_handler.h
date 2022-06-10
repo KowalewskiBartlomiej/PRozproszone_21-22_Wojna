@@ -1,5 +1,4 @@
-#ifndef COMM_THREAD
-#define COMM_THREAD
+#pragma once
 
 #include <mpi.h>
 
@@ -9,8 +8,6 @@ namespace handler{
 
     void recv_message(Ship* ship);
 
-    void send_message(Msg tag, int rec);
+    void send_message(Msg tag, int rec, Ship* ship);
 
 }
-
-#endif

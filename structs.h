@@ -1,5 +1,4 @@
-#ifndef STRUCTS_H
-#define STRUCTS_H
+#pragma once
 
 #include <vector>
 #include <array>
@@ -10,6 +9,7 @@
 #include <iostream>
 #include <math.h>
 #include <unistd.h>
+#include <mpi.h>
 
 using namespace std;
 
@@ -59,11 +59,13 @@ class Ship {
         int durability;
         vector<array<int, 3>> mechQueue; //kolejka dostępu do mechaników
         vector<int> pending;             //tablica zawierająca okręty, którym należy odpowiedzieć po zwolnieniu doku
-        //mutex mutex;
+        mutex timeMutex;
+        MPI_Datatype MSG_WAR;
 
         void updateTime(int received_time);
         int busyMech();
         void processStatus();
+        void processAck(int tag, message mess, int rank);
+        void updateQueue(int freed);
+        MPI_Datatype createType();
 };
-
-#endif
