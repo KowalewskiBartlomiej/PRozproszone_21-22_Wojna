@@ -36,7 +36,7 @@ enum Msg {
 
 typedef struct {
     int lamportTime;                     //czas lamporta           
-    int mech_number;                     //liczba potrzebnych mechaników
+    int mechNumber;                      //liczba potrzebnych mechaników
 } message;
 
 class Ship {
@@ -44,7 +44,8 @@ class Ship {
         Status status;                   //zmienna określająca stan statku
         int damage;                      //zmienna określająca liczbę uszkodzeń (liczbę potrzebnych do naprawy mechaników)
         bool kAsk;                       //zmienna określająca, czy statek ubiega się o dok
-        int Lamport_Time;                //zmienna określająca czas przybycia procesu (zegar Lamporta)
+        int lamportTime;                 //zmienna określająca czas przybycia procesu (zegar Lamporta)
+        int accepted;                    //zmienna określająca liczbę okrętów nieubiegających się o sekcję krytyczną
         int rank;
         int size;
         int durability;
