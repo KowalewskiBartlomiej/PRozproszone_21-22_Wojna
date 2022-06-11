@@ -2,11 +2,13 @@
 
 Ship::Ship(){}
 
-Ship::~Ship(){}
+Ship::~Ship(){
+    MPI_Type_free(&MSG_WAR);
+}
 
 Ship::Ship(int rank, int size) {
     srand(rank + time(NULL));
-    this->durability = HP;
+    this->durability = rand()%(HP - 2) + 2;
     this->status = Status::AT_WAR;
     this->rank = rank;
     this->size = size;
@@ -28,7 +30,6 @@ int Ship::busyMech() {
         if (this->mechQueue.at(i)[0] != this->rank) {
             sum += this->mechQueue.at(i)[2];
         } else {
-            sum += this->mechQueue.at(i)[2];
             break;
         }
     }
@@ -39,27 +40,30 @@ void Ship::processStatus(){
     switch(this->status) {
         case Status::AT_WAR:
         {
-            int interval = floor (MAXTIME / HP);
-            int randTime = rand()%(interval * HP - interval) + interval;
+            int interval = floor (MAXTIME / this->durability);
+            int randTime = rand()%(interval * (this->durability) - interval) + interval;
             int dmg = floor (randTime / interval);
 
             sleep(randTime);
 
-            cout << "Otrzymalem " << dmg << " pkt obrazen (" << this->rank << endl;
+            cout << "Otrzymalem " << dmg << " pkt obrazen " << this->rank << " " << lamportTime << endl;
 
             this->damage = dmg;
 
+            this->timeMutex.lock();
             this->status = Status::SEARCHING_DOCK;
             this->kAsk = true;
+            
+            this->timeMutex.unlock();
 
-            cout << "Zadam dostepu do doku" << endl;
+            cout << "Zadam dostepu do doku " << rank << " " << lamportTime << endl;
 
             for (int i = 0; i < this->size; i++) {
                 if (i != this->rank) {
                     send_message(REQ_DOCK, i, this);
                 }
             }
-
+            
             sleep(WAIT_TIME);
 
             processStatus();
@@ -70,37 +74,24 @@ void Ship::processStatus(){
         {
             sleep(WAIT_TIME);
 
-            if (this->accepted >= SHIPS - DOCKS) {
-                this->status = Status::SEARCHING_MECHANICS;
-                this->accepted = 0;
-                cout << "Jestem w doku" << endl;
-
-                array<int, 3> arr = {this->rank, this->lamportTime, this->damage};
-                this->mechQueue.push_back(arr);
-
-                cout << "Zadam dostepu do mechanikow" << endl;
-
-                for (int i = 0; i < this->size; i++) {
-                    if (i != this->rank){ 
-                        send_message(REQ_MECH, i, this);
-                    }
-                }
-            }
-
             processStatus();
 
             break;
         }
         case Status::SEARCHING_MECHANICS:
         {
-            int mechs = busyMech();
+
+            sleep(WAIT_TIME);
+
             if (this->accepted == this->size - 1) {
+                int mechs = busyMech();
                 if (this->damage <= MECHANICS - mechs) {
-                    cout << "Dostalem " << mechs << " mechanikow" << endl;
+                    cout << "Dostepnych: " << MECHANICS - mechs << " mechanikow " << rank << " " << lamportTime << endl;
                     
                     this->mechQueue.clear();
-
+                    this->timeMutex.lock();
                     this->status = Status::FIXING;
+                    this->timeMutex.unlock();
                 }
             }
             
@@ -110,22 +101,29 @@ void Ship::processStatus(){
         }
         case Status::FIXING:
         {
-            cout << "Jestem w naprawie" << endl;
+            cout << "Jestem w naprawie " << rank << " " << lamportTime << endl;
 
             sleep(this->damage);
 
             this->damage = 0;
+            this->timeMutex.lock();
             this->kAsk = false;
+            this->timeMutex.unlock();
             this->status = Status::AT_WAR;
+            this->accepted = 0;
 
             for(int i = 0; i < this->size; i++) {
                 if (i != this->rank){ 
                     send_message(REL_MECH, i, this);
-                }
-                if (count(this->pending.begin(), this->pending.end(), i)) {
-                    send_message(ACK_DOCK, i, this);
-                } 
+                    cout << rank << " wyslal zwolnienie do " << i << " " << lamportTime << endl;
+                    if (count(this->pending.begin(), this->pending.end(), i)) {
+                        send_message(ACK_DOCK, i, this);
+                        cout << rank << " wyslal ack dock do " << i << " " << lamportTime << endl;
+                    } 
+                }  
             }
+
+            this->pending.clear();
 
             processStatus();
 
@@ -135,13 +133,21 @@ void Ship::processStatus(){
 }
 
 void Ship::processAck(int tag, message mess, int rank){
-    if(this->status == Status::SEARCHING_MECHANICS && tag == Msg::ACK_DOCK){
+    this->timeMutex.lock();
+    if(this->status != Status::SEARCHING_DOCK && tag == Msg::ACK_DOCK){
+        this->timeMutex.unlock();
         return;
     }
+    this->timeMutex.unlock();
     ++(this->accepted);
-    if(tag == Msg::ACK_MECH){
-        array<int, 3> toAdd = {rank, mess.lamportTime, mess.mechNumber};
+    //cout << accepted << " accept inc " << this->rank << " " << lamportTime << endl;
+    if(tag == Msg::ACK_MECH && this->accepted == this->size-1){
+        sort(this->mechQueue.begin(), this->mechQueue.end(), sortQueue);
         for(unsigned i=0; i<this->mechQueue.size(); ++i){
+            cout << this->mechQueue[i].at(0) << " " << this->mechQueue[i].at(1) << " " << this->mechQueue[i].at(2) << " zawartosc kolejki " << this->rank << endl;
+        }
+        }
+        /*for(unsigned i=0; i<this->mechQueue.size(); ++i){
             if(this->mechQueue[i].at(1) > mess.lamportTime){
                 this->mechQueue.insert(this->mechQueue.begin()+i, toAdd);
             }
@@ -158,19 +164,32 @@ void Ship::processAck(int tag, message mess, int rank){
                     }
                 }
             }
+        }*/
+    if (this->status == Status::SEARCHING_DOCK && tag == Msg::ACK_DOCK && this->accepted >= this->size - DOCKS){
+        this->status = Status::SEARCHING_MECHANICS;
+        this->accepted = 0; 
+        cout << "Jestem w doku " << this->rank << " " << lamportTime << endl;
+
+        array<int, 3> arr = {this->rank, this->lamportTime+size-1, this->damage};
+        this->mechQueue.push_back(arr);
+        cout << "Zadam dostepu do " << this->mechQueue[0][2] << " mechanikow " << this->rank << " " << lamportTime << endl;
+
+        for (int i = 0; i < this->size; i++) {
+            if (i != this->rank){ 
+                send_message(REQ_MECH, i, this);
+            }
         }
     }
 }
 
 void Ship::updateQueue(int freed){
     for(unsigned i=0; i<this->mechQueue.size(); ++i){
+        cout << rank << " " << this->mechQueue[i].at(0) << endl; 
         if(this->mechQueue[i].at(0) == freed){
+            cout << rank << " usuwa " << freed << " z kolejki" << endl;
             this->mechQueue.erase(this->mechQueue.begin() + i);
             break;
         }
-    }
-    if (this->mechQueue[0].at(0) == this->rank){
-
     }
 }
 
@@ -191,6 +210,13 @@ MPI_Datatype Ship::createType() {
     return MPI_MESSAGE_WAR;
 }
 
+bool Ship::sortQueue(const array<int, 3> &a, const array<int, 3> &b){
+    if(a.at(1) < b.at(1)) return true;
+    if(a.at(1) == b.at(1) && a.at(0) < b.at(0)) return true;
+
+    return false;
+}
+
 void send_message(Msg tag, int rec, Ship* ship){
 
     message mess;
@@ -200,6 +226,8 @@ void send_message(Msg tag, int rec, Ship* ship){
     mess.lamportTime = ship->lamportTime;
     mess.mechNumber = ship->damage;
     ship->timeMutex.unlock();
+
+    
     MPI_Send(&mess, 1, ship->MSG_WAR, rec, tag, MPI_COMM_WORLD);
 
 }

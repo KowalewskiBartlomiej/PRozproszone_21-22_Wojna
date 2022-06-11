@@ -5,11 +5,10 @@ using namespace std;
 
 //STAŁE
 //////////////////////
-#define SHIPS 2
-#define DOCKS 1
-#define MECHANICS 10
-#define MAXTIME 10
-#define HP 7
+#define DOCKS 3
+#define MECHANICS 24
+#define MAXTIME 20
+#define HP 16
 #define WAIT_TIME 1
 //////////////////////
 

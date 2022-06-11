@@ -16,6 +16,10 @@
 #include "structs.h"
 
 class Ship {
+
+    private:
+        static bool sortQueue(const array<int, 3> &a, const array<int, 3> &b);
+
     public:
         Ship();
         ~Ship();
@@ -40,6 +44,7 @@ class Ship {
         void processAck(int tag, message mess, int rank);
         void updateQueue(int freed);
         MPI_Datatype createType();
+
 };
 
 void send_message(Msg tag, int rec, Ship* ship);
