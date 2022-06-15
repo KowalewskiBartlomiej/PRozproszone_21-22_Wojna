@@ -1,13 +1,11 @@
 #ifndef STRUCT_H
 #define STRUCT_H
 
-#include <mutex>
-
 using namespace std;
 
 //STAŁE
 //////////////////////
-#define DOCKS 1
+#define DOCKS 4
 #define MECHANICS 24
 #define MAXTIME 20
 #define HP 16

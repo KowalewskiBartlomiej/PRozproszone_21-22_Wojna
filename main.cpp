@@ -32,7 +32,7 @@ int main(int argc, char** argv){
     std::thread mess_handle(handler::recv_message, &ship);
     mess_handle.detach();
     ship.processStatus();
-    mess_handle.join();
+    //mess_handle.join();
     //delete &ship;
     cout << rank << " sfinalizowany!" << endl;
 }
