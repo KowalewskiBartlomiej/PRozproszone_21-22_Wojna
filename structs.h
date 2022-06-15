@@ -1,11 +1,13 @@
 #ifndef STRUCT_H
 #define STRUCT_H
 
+#include <mutex>
+
 using namespace std;
 
 //STAŁE
 //////////////////////
-#define DOCKS 3
+#define DOCKS 1
 #define MECHANICS 24
 #define MAXTIME 20
 #define HP 16
@@ -24,7 +26,8 @@ enum Msg {
     ACK_DOCK,                            //Akceptacja żądania doku
     REQ_MECH,                            //Żądanie mechaników
     ACK_MECH,                            //Akceptacja żądania mechaników
-    REL_MECH                             //Zwolnienie mechaników
+    REL_MECH,                             //Zwolnienie mechaników
+    SIG_END
 };
 
 typedef struct {
@@ -32,6 +35,6 @@ typedef struct {
     int mechNumber;                      //liczba potrzebnych mechaników
 } message;
 
-
+extern bool commExit;
 
 #endif

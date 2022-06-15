@@ -2,16 +2,19 @@
 
 #include "message_handler.h"
 
-void signal_handler(int signum){
-    MPI_Finalize();
+bool commExit;
 
-    exit(0);
+void signal_handler(int signum){
+    commExit = true;   
+    MPI_Finalize();   
 }
 
 int main(int argc, char** argv){
     
     int provided;
     int rank, size;
+
+    commExit = false;
 
     signal(SIGINT, signal_handler);
 
@@ -27,5 +30,9 @@ int main(int argc, char** argv){
     
     Ship ship(rank, size);
     std::thread mess_handle(handler::recv_message, &ship);
+    mess_handle.detach();
     ship.processStatus();
+    mess_handle.join();
+    //delete &ship;
+    cout << rank << " sfinalizowany!" << endl;
 }

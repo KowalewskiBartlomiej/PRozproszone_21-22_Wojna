@@ -36,9 +36,6 @@ class Ship {
         vector<array<int, 3>> mechQueue; //kolejka dostępu do mechaników
         vector<int> pending;             //tablica zawierająca okręty, którym należy odpowiedzieć po zwolnieniu doku
         mutex timeMutex;
-        mutex queueMutex;
-        mutex statusMutex;
-        mutex pendMutex;
         MPI_Datatype MSG_WAR;
 
         void updateTime(int received_time);
